@@ -1,0 +1,82 @@
+name: ${COMPOSE_PROJECT_NAME:-ollama-server}
+
+services:
+  ollama:
+    image: ${OLLAMA_IMAGE:-ollama/ollama:latest}
+    container_name: ${COMPOSE_PROJECT_NAME:-ollama-server}-ollama
+    restart: unless-stopped
+    shm_size: ${OLLAMA_SHM_SIZE:-2g}
+    ports:
+      - "${BIND_ADDRESS:-0.0.0.0}:${OLLAMA_PORT:-11434}:11434"
+    environment:
+      OLLAMA_HOST: ${OLLAMA_HOST:-0.0.0.0:11434}
+      OLLAMA_KEEP_ALIVE: ${OLLAMA_KEEP_ALIVE:-10m}
+      OLLAMA_NUM_PARALLEL: ${OLLAMA_NUM_PARALLEL:-1}
+      OLLAMA_MAX_LOADED_MODELS: ${OLLAMA_MAX_LOADED_MODELS:-1}
+      OLLAMA_ORIGINS: ${OLLAMA_ORIGINS:-}
+      OLLAMA_VULKAN: ${OLLAMA_VULKAN:-1}
+      GGML_VK_VISIBLE_DEVICES: ${GGML_VK_VISIBLE_DEVICES:-}
+    devices:
+      - "${OLLAMA_GPU_DEVICE:-/dev/dri}:/dev/dri"
+    group_add:
+      - "${OLLAMA_GPU_RENDER_GROUP_ID:-989}"
+      - "${OLLAMA_GPU_CARD_GROUP_ID:-985}"
+    volumes:
+      - type: bind
+        source: ${OLLAMA_DATA_DIR:-/opt/ollama-server/ollama}
+        target: /root/.ollama
+    healthcheck:
+      test: ["CMD-SHELL", "ollama list >/dev/null 2>&1 || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    security_opt:
+      - no-new-privileges:true
+    networks:
+      - ollama_backend
+
+  open-webui:
+    image: ${OPEN_WEBUI_IMAGE:-ghcr.io/open-webui/open-webui:main}
+    container_name: ${COMPOSE_PROJECT_NAME:-ollama-server}-open-webui
+    restart: unless-stopped
+    depends_on:
+      ollama:
+        condition: service_healthy
+    ports:
+      - "${BIND_ADDRESS:-0.0.0.0}:${OPEN_WEBUI_PORT:-3000}:8080"
+    environment:
+      OLLAMA_BASE_URL: ${OPEN_WEBUI_OLLAMA_BASE_URL:-http://ollama:11434}
+      RAG_OLLAMA_BASE_URL: ${OPEN_WEBUI_RAG_OLLAMA_BASE_URL:-http://ollama:11434}
+      ENABLE_OLLAMA_API: ${OPEN_WEBUI_ENABLE_OLLAMA_API:-True}
+      ENABLE_OPENAI_API: ${OPEN_WEBUI_ENABLE_OPENAI_API:-False}
+      WEBUI_AUTH: ${OPEN_WEBUI_AUTH:-True}
+      ENABLE_SIGNUP: ${OPEN_WEBUI_ENABLE_SIGNUP:-False}
+      WEBUI_NAME: ${OPEN_WEBUI_NAME:-Local Ollama}
+      WEBUI_ADMIN_NAME: ${OPEN_WEBUI_ADMIN_NAME:-Admin}
+      WEBUI_ADMIN_EMAIL: ${OPEN_WEBUI_ADMIN_EMAIL:?Set OPEN_WEBUI_ADMIN_EMAIL in .env or Portainer stack variables}
+      WEBUI_ADMIN_PASSWORD: ${OPEN_WEBUI_ADMIN_PASSWORD:?Set OPEN_WEBUI_ADMIN_PASSWORD in .env or Portainer stack variables}
+      WEBUI_SECRET_KEY: ${OPEN_WEBUI_SECRET_KEY:?Set OPEN_WEBUI_SECRET_KEY in .env or Portainer stack variables}
+    volumes:
+      - type: bind
+        source: ${OPEN_WEBUI_DATA_DIR:-/opt/ollama-server/open-webui}
+        target: /app/backend/data
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "python -c \"import urllib.request; urllib.request.urlopen('http://127.0.0.1:8080/health', timeout=5).read()\"",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    security_opt:
+      - no-new-privileges:true
+    networks:
+      - ollama_backend
+
+networks:
+  ollama_backend:
+    driver: bridge
+
