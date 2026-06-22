@@ -9,7 +9,7 @@ runtime behavior controlled by Docker Compose environment variables.
 
 ## Architecture
 
-- `compose.yaml` is the deployment contract. Keep it Portainer-compatible and
+- `docker-compose.yml` is the deployment contract. Keep it Portainer-compatible and
   avoid host-specific values outside environment-variable defaults.
 - `ollama` runs the official `ollama/ollama` image, publishes the Ollama API on
   `${OLLAMA_PORT}`, stores model data at `${OLLAMA_DATA_DIR}`, and receives the
@@ -81,4 +81,3 @@ Every meaningful change must keep these files current:
   variable is practical.
 - If adding a new operational procedure that makes this file too large, create a
   focused skill file under `docs/agent-skills/` and link it from this guide.
-

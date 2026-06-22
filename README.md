@@ -76,7 +76,8 @@ after the first login.
    `.env.example` and generate strong values for `OPEN_WEBUI_SECRET_KEY` and
    `OPEN_WEBUI_ADMIN_PASSWORD`.
 2. In Portainer, create a new Stack.
-3. Paste `compose.yaml` into the stack editor.
+3. For a repository-based stack, set the Compose path to `docker-compose.yml`.
+   For a web-editor stack, paste `docker-compose.yml` into the stack editor.
 4. Add the environment variables from `.env` in Portainer's environment section.
 5. Deploy the stack.
 6. Check container logs and health in Portainer.
@@ -187,4 +188,3 @@ Back up the host data paths before upgrades:
 ```bash
 sudo tar -C /opt -czf ollama-server-backup.tgz ollama-server
 ```
-

@@ -6,6 +6,7 @@ All notable changes to this project are documented in this file.
 
 ### Added
 
+- Added `docker-compose.yml` as the primary Portainer-compatible stack file.
 - Created the initial Docker Compose stack for Ollama and Open WebUI.
 - Added Intel Arc `/dev/dri` GPU passthrough with environment-configurable group
   IDs and Vulkan selection controls.
@@ -15,3 +16,7 @@ All notable changes to this project are documented in this file.
 - Added agent-facing and user-facing documentation for LAN-only deployment,
   Portainer usage, security defaults, and troubleshooting.
 
+### Changed
+
+- Renamed the Compose deployment contract from `compose.yaml` to
+  `docker-compose.yml` so Portainer can discover the stack file automatically.

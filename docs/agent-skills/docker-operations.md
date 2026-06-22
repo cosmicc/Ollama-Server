@@ -5,7 +5,7 @@ operator workflow behavior in this repository.
 
 ## Deployment Contract
 
-- `compose.yaml` is the source of truth for runtime services.
+- `docker-compose.yml` is the source of truth for runtime services.
 - All host-specific values must remain configurable through environment
   variables.
 - The intended deployment target is Docker Compose or a Portainer standalone
@@ -69,8 +69,9 @@ docker compose exec ollama ollama run llama3.2 "Reply with ready."
 
 ## Portainer Notes
 
-- Portainer users may paste `compose.yaml` into a Stack and supply `.env` values
-  through the stack environment editor.
+- Portainer users may point a repository stack at `docker-compose.yml`, or paste
+  that file into a Stack and supply `.env` values through the stack environment
+  editor.
 - Compose variable substitution happens before container startup. Missing
   required Open WebUI admin or secret variables should fail fast.
 - If a Portainer deployment behaves differently than CLI Compose, inspect the
@@ -85,4 +86,3 @@ When changing this workflow:
 - Update `AGENTS.md` if routing, invariants, or architecture summaries change.
 - Update `CHANGELOG.md` with added, changed, fixed, removed, security, or
   migration details.
-
