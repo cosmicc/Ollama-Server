@@ -69,6 +69,7 @@ create_host_dir() {
 }
 
 create_host_dir "$(read_env_value "OLLAMA_DATA_DIR")"
+create_host_dir "$(read_env_value "OLLAMA_MODELS_DIR")"
 create_host_dir "$(read_env_value "OPEN_WEBUI_DATA_DIR")"
 
 cat <<EOF
@@ -83,4 +84,3 @@ Next steps:
   docker compose up -d
   ./scripts/pull-model.sh llama3.2
 EOF
-

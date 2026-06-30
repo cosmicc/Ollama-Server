@@ -10,9 +10,16 @@ operator workflow behavior in this repository.
   variables.
 - The intended deployment target is Docker Compose or a Portainer standalone
   stack on a headless Ubuntu host.
-- Host persistence uses bind mounts under `${OLLAMA_DATA_DIR}` and
-  `${OPEN_WEBUI_DATA_DIR}`. Do not switch to Docker named volumes without a
-  user request and README migration notes.
+- Host persistence uses bind mounts under `${OLLAMA_DATA_DIR}`,
+  `${OLLAMA_MODELS_DIR}`, and `${OPEN_WEBUI_DATA_DIR}`. Do not switch to Docker
+  named volumes without a user request and README/INSTALL migration notes.
+- `${OLLAMA_MODELS_DIR}` is the host-drive path for large LLM files. Keep it
+  absolute, and document any migration from older `${OLLAMA_DATA_DIR}/models`
+  deployments before changing defaults.
+- `BIND_ADDRESS` and `OLLAMA_PORT` are the operator-facing settings for
+  publishing Ollama on the LAN. The container's `OLLAMA_HOST` value is fixed in
+  Compose so operators do not have to keep two overlapping bind settings in
+  sync.
 
 ## Intel Arc GPU Rules
 
@@ -74,6 +81,9 @@ docker compose exec ollama ollama run llama3.2 "Reply with ready."
   editor.
 - Compose variable substitution happens before container startup. Missing
   required Open WebUI admin or secret variables should fail fast.
+- Existing Portainer stacks may still have a legacy `OLLAMA_HOST` variable. It
+  is ignored by the current Compose contract and should be removed from the
+  stack environment to avoid confusion.
 - If a Portainer deployment behaves differently than CLI Compose, inspect the
   rendered stack configuration and environment variables before editing the
   application files.
@@ -83,6 +93,7 @@ docker compose exec ollama ollama run llama3.2 "Reply with ready."
 When changing this workflow:
 
 - Update `README.md` for user-facing setup, configuration, or troubleshooting.
+- Update `INSTALL.md` for Portainer, storage, migration, or deployment steps.
 - Update `AGENTS.md` if routing, invariants, or architecture summaries change.
 - Update `CHANGELOG.md` with added, changed, fixed, removed, security, or
   migration details.

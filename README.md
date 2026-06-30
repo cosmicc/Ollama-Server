@@ -9,7 +9,8 @@ container.
 - Ollama API: `http://<server-ip>:11434`
 - Open WebUI: `http://<server-ip>:3000`
 - GPU access: Intel Arc through `/dev/dri` using Ollama's Vulkan backend
-- Persistence: host bind mounts under `/opt/ollama-server/`
+- Persistence: host bind mounts, with LLM files stored at
+  `OLLAMA_MODELS_DIR`
 - Configuration: Docker Compose environment variables from `.env` or Portainer
   stack variables
 
@@ -36,6 +37,7 @@ Review `.env`, especially these values:
 
 ```bash
 OLLAMA_DATA_DIR=/opt/ollama-server/ollama
+OLLAMA_MODELS_DIR=/srv/ollama-server/models
 OPEN_WEBUI_DATA_DIR=/opt/ollama-server/open-webui
 OPEN_WEBUI_ADMIN_EMAIL=admin@ollama.local
 OPEN_WEBUI_ADMIN_PASSWORD=<generated>
@@ -70,6 +72,9 @@ Then open `http://<server-ip>:3000` from a LAN browser and sign in with the
 admin credentials in `.env`. Change the generated admin password in Open WebUI
 after the first login.
 
+For Portainer deployment, external-drive storage, and migration details, see
+`INSTALL.md`.
+
 ## Portainer Deployment
 
 1. Run `./scripts/bootstrap-env.sh` on the Docker host, or copy
@@ -79,6 +84,8 @@ after the first login.
 3. For a repository-based stack, set the Compose path to `docker-compose.yml`.
    For a web-editor stack, paste `docker-compose.yml` into the stack editor.
 4. Add the environment variables from `.env` in Portainer's environment section.
+   Do not add `OLLAMA_HOST`; use `BIND_ADDRESS` and `OLLAMA_PORT` for host-side
+   publishing.
 5. Deploy the stack.
 6. Check container logs and health in Portainer.
 
@@ -96,7 +103,8 @@ Most runtime settings live in `.env`:
 | `BIND_ADDRESS` | Host interface bind address for published ports. |
 | `OLLAMA_PORT` | LAN port for the Ollama API. |
 | `OPEN_WEBUI_PORT` | LAN port for Open WebUI. |
-| `OLLAMA_DATA_DIR` | Host path for Ollama models and metadata. |
+| `OLLAMA_DATA_DIR` | Host path for non-model Ollama state. |
+| `OLLAMA_MODELS_DIR` | Host path for Ollama LLM files. Put this on the mounted Docker host drive. |
 | `OPEN_WEBUI_DATA_DIR` | Host path for Open WebUI database and uploads. |
 | `OLLAMA_GPU_DEVICE` | Host GPU device path, normally `/dev/dri`. |
 | `OLLAMA_GPU_RENDER_GROUP_ID` | Numeric group ID for `/dev/dri/renderD128`. |
@@ -186,5 +194,8 @@ docker compose down
 Back up the host data paths before upgrades:
 
 ```bash
-sudo tar -C /opt -czf ollama-server-backup.tgz ollama-server
+sudo tar -czf ollama-server-backup.tgz \
+  "${OLLAMA_DATA_DIR:-/opt/ollama-server/ollama}" \
+  "${OLLAMA_MODELS_DIR:-/srv/ollama-server/models}" \
+  "${OPEN_WEBUI_DATA_DIR:-/opt/ollama-server/open-webui}"
 ```

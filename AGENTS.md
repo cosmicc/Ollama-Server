@@ -12,8 +12,10 @@ runtime behavior controlled by Docker Compose environment variables.
 - `docker-compose.yml` is the deployment contract. Keep it Portainer-compatible and
   avoid host-specific values outside environment-variable defaults.
 - `ollama` runs the official `ollama/ollama` image, publishes the Ollama API on
-  `${OLLAMA_PORT}`, stores model data at `${OLLAMA_DATA_DIR}`, and receives the
-  Intel GPU device through `${OLLAMA_GPU_DEVICE}`.
+  `${BIND_ADDRESS}:${OLLAMA_PORT}`, keeps its internal listener fixed at
+  `0.0.0.0:11434`, stores large model files at `${OLLAMA_MODELS_DIR}`, keeps
+  remaining Ollama state at `${OLLAMA_DATA_DIR}`, and receives the Intel GPU
+  device through `${OLLAMA_GPU_DEVICE}`.
 - `open-webui` runs `ghcr.io/open-webui/open-webui`, publishes the UI on
   `${OPEN_WEBUI_PORT}`, stores application data at `${OPEN_WEBUI_DATA_DIR}`, and
   reaches Ollama at `${OPEN_WEBUI_OLLAMA_BASE_URL}` on the private Compose
@@ -32,6 +34,8 @@ Every meaningful change must keep these files current:
 - `AGENTS.md` for agent-facing architecture, invariants, and routing.
 - `README.md` for user-facing setup, configuration, deployment, and
   troubleshooting.
+- `INSTALL.md` for Portainer, Docker Compose, storage, and migration steps that
+  would make `README.md` too dense.
 - `CHANGELOG.md` for notable changes.
 - Related files under `docs/agent-skills/` when changing specialized workflows.
 
@@ -47,6 +51,9 @@ Every meaningful change must keep these files current:
 - Prefer binding to `0.0.0.0` only for trusted LAN hosts. If a host has any
   public or untrusted interface, document firewall rules or use a specific
   `${BIND_ADDRESS}`.
+- Keep `BIND_ADDRESS` and `OLLAMA_PORT` as the operator-facing Ollama exposure
+  settings. Do not reintroduce an `OLLAMA_HOST` stack variable unless the
+  deployment contract changes and the security impact is documented.
 - Do not enable broad debug logging, request/response body logging, or
   unauthenticated proxy behavior unless the user explicitly accepts the risk.
 
@@ -56,8 +63,8 @@ Every meaningful change must keep these files current:
 2. Read `docs/agent-skills/docker-operations.md` before touching Compose,
    Portainer instructions, GPU configuration, scripts, or validation steps.
 3. Keep changes focused on the requested deployment behavior.
-4. Update `README.md` and `CHANGELOG.md` for every meaningful code or
-   configuration change.
+4. Update `README.md`, `INSTALL.md`, and `CHANGELOG.md` for every meaningful
+   code or configuration change.
 5. Validate with:
 
    ```bash
@@ -79,5 +86,8 @@ Every meaningful change must keep these files current:
 - Keep Docker configuration environment-driven. Avoid hardcoded host paths,
   ports, image tags, group IDs, or model names in Compose when an environment
   variable is practical.
+- Keep LLM files on the Docker host through `${OLLAMA_MODELS_DIR}`. Existing
+  deployments that used `${OLLAMA_DATA_DIR}/models` need a documented model-file
+  migration before changing the Portainer stack environment.
 - If adding a new operational procedure that makes this file too large, create a
   focused skill file under `docs/agent-skills/` and link it from this guide.

@@ -33,6 +33,12 @@ warn_placeholder() {
 warn_placeholder "OPEN_WEBUI_SECRET_KEY"
 warn_placeholder "OPEN_WEBUI_ADMIN_PASSWORD"
 
+legacy_ollama_host="$(get_env_value "OLLAMA_HOST")"
+
+if [[ -n "$legacy_ollama_host" ]]; then
+  echo "WARNING: OLLAMA_HOST is no longer used by this stack. Use BIND_ADDRESS and OLLAMA_PORT for host publishing." >&2
+fi
+
 gpu_device="$(get_env_value "OLLAMA_GPU_DEVICE")"
 gpu_device="${gpu_device:-/dev/dri}"
 
@@ -49,5 +55,15 @@ if [[ -n "$host_render_group_id" && "$render_group_id" != "$host_render_group_id
   echo "WARNING: OLLAMA_GPU_RENDER_GROUP_ID=$render_group_id but /dev/dri/renderD128 group is $host_render_group_id." >&2
 fi
 
-echo "Stack configuration is syntactically valid."
+models_dir="$(get_env_value "OLLAMA_MODELS_DIR")"
+models_dir="${models_dir:-/srv/ollama-server/models}"
 
+if [[ "$models_dir" != /* ]]; then
+  echo "WARNING: OLLAMA_MODELS_DIR should be an absolute host path; current value is $models_dir." >&2
+elif [[ ! -d "$models_dir" ]]; then
+  echo "WARNING: OLLAMA_MODELS_DIR=$models_dir does not exist yet. Run ./scripts/bootstrap-env.sh or create it on the Docker host before deployment." >&2
+else
+  echo "Ollama model bind mount path exists: $models_dir"
+fi
+
+echo "Stack configuration is syntactically valid."
